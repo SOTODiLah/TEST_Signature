@@ -1,13 +1,27 @@
 #pragma once
-#include <iostream>
 #include <time.h>
 
+// Структура вычисления времени работы части кода
 struct TimeCode
 {
 	uint64_t count;
 	uint64_t first;
 	uint64_t sum;
 	bool wasFirst;
+
+	/**
+	 * Получить точку отсчёта.
+	 * changeOnes - позволяет получить задержку в цикле до вхождения в условие
+	 * Пример:
+	 * while (true):
+	 * {
+	 *		timeCode.getFirst(true); // точка отсчёта сработает только одиин раз.
+	 *		if (условие контролируется другим потоком)
+	 *		{
+	 *			timeCode.getLast(); // теперь точку отсчёта можны вызвать вновь.
+	 *		}
+	 * }
+	 */
 	uint64_t getFirst(bool changeOnes = false)
 	{
 		if (changeOnes)

@@ -1,26 +1,25 @@
 #include "Signature.h"
 
-Signature::Signature(std::string newInputFileName, std::string newOutputFileName, size_t newSizeBlock)
+Signature::Signature(std::string inputFileName, std::string outputFileName, size_t sizeBlock)
+	: inputFileName(inputFileName), outputFileName(outputFileName), sizeBlock(sizeBlock)
 {
 	isOpenInputFile = false;
-	inputFileName = "";
-	outputFileName = newOutputFileName;
+
 	outputFileStream.open(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc);
+
 	hardwareConcurrency = std::thread::hardware_concurrency();
 	if (hardwareConcurrency < 2)
 		hardwareConcurrency = 2;
 	halfhardwareConcurrency = hardwareConcurrency / 2;
-	sizeBlock = newSizeBlock;
-	std::fstream file(newInputFileName, std::ios::in | std::ios::binary);
+
+	std::fstream file(inputFileName, std::ios::in | std::ios::binary);
 	isOpenInputFile = file.is_open();
 	if (isOpenInputFile)
 	{
-		sizeFile = std::filesystem::file_size(newInputFileName);
-		inputFileName = newInputFileName;
+		sizeFile = std::filesystem::file_size(inputFileName);
 		file.close();
 	}
-	else
-		sizeFile = 0;
+	else { sizeFile = 0; }
 }
 
 bool Signature::setFilesNames(std::string newInputFileName, std::string newOutputFileName)
@@ -73,14 +72,16 @@ uint64_t Signature::getSizeFile() const
 	return sizeFile;
 }
 
-bool Signature::signatureFileSingleReader()
+void Signature::signatureFileSingleReader()
 {
-	if (sizeFile == 0)
-		return false;
 	if (inputFileName == "")
-		return false;
+		throw std::exception("Invalid file name.");
+	if (!isOpenInputFile)
+		throw std::exception("The file couldn't be opened.");
+	if (sizeFile == 0)
+		throw std::exception("The file does not exist or the size is null.");
 	for (size_t i = 0; i < hardwareConcurrency - 1; i++)
-		smartQueue.push_back(std::move(std::shared_ptr<SmartQueue<FileBlock>>(new SmartQueue<FileBlock>(3))));
+		smartQueue.push_back(std::move(std::shared_ptr<SmartQueue<FileBlock>>(new SmartQueue<FileBlock>(halfhardwareConcurrency))));
 	threads.push_back(std::move(std::thread(&Signature::threadReader, this)));
 	for (size_t i = 0; i < hardwareConcurrency-1; i++)
 	{
@@ -92,7 +93,6 @@ bool Signature::signatureFileSingleReader()
 	}
 	smartQueue.clear();
 	threads.clear();
-	return true;
 }
 
 void Signature::threadReader()
@@ -107,8 +107,7 @@ void Signature::threadReader()
 	while (pos <= sizeFileWithoutBlock)
 	{
 		inputFileStream.read(&(*str)[0], sizeBlock);
-		FileBlock fb;
-		fb.set(str, pos);
+		FileBlock fb(str, pos);
 		smartQueue[idHasher]->push(fb);
 		idHasher = idHasher < (hardwareConcurrency - 2) ? idHasher + 1 : 0;
 		str.reset(new std::string);
@@ -120,8 +119,7 @@ void Signature::threadReader()
 	{
 		str->resize(smallBlock);
 		inputFileStream.read(&(*str)[0], smallBlock);
-		FileBlock fb;
-		fb.set(str, pos);
+		FileBlock fb(str, pos);
 		smartQueue[idHasher]->push(fb);
 	}
 	finishReader = true;
@@ -129,7 +127,7 @@ void Signature::threadReader()
 
 void Signature::threadHasher(size_t idThread)
 {
-	FileBlock fb;
+	FileBlock fb(nullptr, 0);
 	std::string digest;
 	uint64_t posHash = 0;
 	digest.resize(sizeDigest);
@@ -147,12 +145,14 @@ void Signature::threadHasher(size_t idThread)
 	}
 }
 
-bool Signature::signatureFileAllReader()
+void Signature::signatureFileAllReader()
 {
-	if (sizeFile == 0)
-		return false;
 	if (inputFileName == "")
-		return false;
+		throw std::exception("Invalid file name.");
+	if (!isOpenInputFile)
+		throw std::exception("The file couldn't be opened.");
+	if (sizeFile == 0)
+		throw std::exception("The file does not exist or the size is null.");
 
 	for (size_t i = 0; i < hardwareConcurrency; i++)
 	{
@@ -163,7 +163,6 @@ bool Signature::signatureFileAllReader()
 		t.join();
 	}
 	threads.clear();
-	return true;
 }
 
 void Signature::threadReadHashWrite(size_t idThread)
@@ -210,12 +209,14 @@ void Signature::threadReadHashWrite(size_t idThread)
 	inputFileStream.close();
 }
 
-bool Signature::signatureFileHalfReader()
+void Signature::signatureFileHalfReader()
 {
-	if (sizeFile == 0)
-		return false;
 	if (inputFileName == "")
-		return false;
+		throw std::exception("Invalid file name.");
+	if (!isOpenInputFile)
+		throw std::exception("The file couldn't be opened.");
+	if (sizeFile == 0)
+		throw std::exception("The file does not exist or the size is null.");
 	uint64_t realSizeFile = sizeFile;
 	sizeFile = sizeFile - sizeFile % sizeBlock;
 	if (realSizeFile > sizeBlock)
@@ -254,7 +255,6 @@ bool Signature::signatureFileHalfReader()
 	}
 	sizeFile = realSizeFile;
 	threads.clear();
-	return true;
 }
 
 void Signature::threadForReadHalfThreadsOnTask(std::shared_ptr<std::shared_ptr<std::string>> block, size_t idThread, std::shared_ptr<bool> finish)

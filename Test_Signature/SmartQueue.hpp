@@ -9,51 +9,68 @@
 template <class T>
 class SmartQueue
 {
+    // ”даление конструкторов копировани€ и операторов присваивани€
     SmartQueue(const SmartQueue&) = delete;
     SmartQueue(SmartQueue&&) = delete;
     SmartQueue& operator=(const SmartQueue&) = delete;
     SmartQueue& operator=(SmartQueue&&) = delete;
 public:
-    explicit SmartQueue(size_t size) : m_container(size + 1)
+    /**
+     * ќб€зательный конструктор с инициализацией вектора указанным размером + 1. ”величение размер производитс€ из-за цикличного устройства очереди.
+     */
+    explicit SmartQueue(size_t size) : container(size + 1)
     {
         assert(size);
     }
-
+    
+    /**
+     * ћетод добавлени€ элемента в очередь. 
+     */
     bool push(T& args)
     {
-        auto pushPos = m_pushPos.load(std::memory_order_relaxed);
-        if (m_popPos.load(std::memory_order_acquire) == pushPos)
+        //≈сли текущее значение Push равно Pop тогда контейнер переполнен.
+        auto copyPushPos = pushPos.load(std::memory_order_relaxed);
+        if (popPos.load(std::memory_order_acquire) == copyPushPos)
             return false;
 
-        m_container[pushPos] = std::move(args);
+        container[copyPushPos] = std::move(args);
 
-        pushPos = incrementPosition(pushPos);
-        m_pushPos.store(pushPos, std::memory_order_release);
+        copyPushPos = incrementPosition(copyPushPos);
+        pushPos.store(copyPushPos, std::memory_order_release);
 
         return true;
     }
 
+    /**
+     * ћетод получение элемента из очереди с его очисткой. 
+     */
     bool pop(T& arg)
     {
-        auto popPos = m_popPos.load(std::memory_order_relaxed);
-        popPos = incrementPosition(popPos);
-        if (m_pushPos.load(std::memory_order_acquire) == popPos)
+        auto copyPopPos = popPos.load(std::memory_order_relaxed);
+
+        //≈сли текущее положение Pop + 1 равно Push, тогда дотупных элементов нет.
+        copyPopPos = incrementPosition(copyPopPos);
+        if (pushPos.load(std::memory_order_acquire) == copyPopPos)
             return false;
 
-        arg = std::move(m_container.at(popPos));
+        arg = std::move(container.at(copyPopPos));
 
-        m_popPos.store(popPos, std::memory_order_release);
+        popPos.store(copyPopPos, std::memory_order_release);
         return true;
     }
 
 private:
+    /**
+     * ћетод инкриментировани€ позиции вставки и удалени€. ѕозвол€ет за циклить позиции в переделах размера очереди.
+     */
     size_t incrementPosition(size_t pos) 
     { 
-        return (pos != m_container.size() - 1) ? pos + 1 : 0;
+        return (pos != container.size() - 1) ? pos + 1 : 0;
     }
 
 private:
-    std::vector<T> m_container;
-    std::atomic<size_t> m_popPos = { 0 };
-    std::atomic<size_t> m_pushPos = { 1 };
+    //  онтейнер класса и атомарные переменные позиций вставки и удалени€.
+    std::vector<T> container;
+    std::atomic<size_t> popPos = { 0 };
+    std::atomic<size_t> pushPos = { 1 };
 };
