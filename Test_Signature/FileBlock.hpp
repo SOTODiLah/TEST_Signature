@@ -1,9 +1,9 @@
 #pragma once
 #include <utility>
 #include <exception>
-#include <cryptoPP/cryptlib.h>
+#include "../CryptoPP/cryptlib.h"
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
-#include <cryptoPP/md5.h>
+#include "../CryptoPP/md5.h"
 
 class FileBlock {
 public:

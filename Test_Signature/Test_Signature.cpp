@@ -2,7 +2,7 @@
 #include <exception>
 #include "TimeCode.hpp"
 #include "Signature.h"
-#include <CLI/CLI.hpp>
+#include "../CLI/CLI.hpp"
 
 
 int main(int argc, char** argv) {
