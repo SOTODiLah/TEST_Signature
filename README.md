@@ -2,6 +2,9 @@
 Создание сигнатуры файла по блоками заданной величены. Хэш MD5.
 
 ## Project VS2019
+В реализации программы используются две стороние библиотеки:<br>
+* CLI (для работы с командной строкой);
+* CryptoPP (для реализации хэширования).
 ### Release x86
 Компиляцию можно произвести в конфигурации Release x86.
 ```bash
@@ -15,9 +18,9 @@ git clone git://github.com/weidai11/cryptopp
 
 ## Download program
 
-Google Drive [ZIP](https://drive.google.com/file/d/1_awqe0CbxfvD5BDJobVKWrq-Ot9Cajm5/view?usp=sharing) - только программа.
+* Google Drive [ZIP](https://drive.google.com/file/d/1_awqe0CbxfvD5BDJobVKWrq-Ot9Cajm5/view?usp=sharing) - только программа.
 
-Google Drive [ZIP](https://drive.google.com/file/d/1vOXv8lHla6tN9cDsl4ukCkBggUd0F65t/view?usp=sharing) - программа и тестовый файл 1gb.
+* Google Drive [ZIP](https://drive.google.com/file/d/1vOXv8lHla6tN9cDsl4ukCkBggUd0F65t/view?usp=sharing) - программа и тестовый файл 1gb.
 
 ## Launch
 
