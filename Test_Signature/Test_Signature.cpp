@@ -1,4 +1,4 @@
-п»ї#include <iostream>
+#include <iostream>
 #include <exception>
 #include "TimeCode.hpp"
 #include "Signature.h"

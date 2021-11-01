@@ -1,5 +1,4 @@
 #pragma once
-// Поместить объявление библиотек после STL
 
 #include <iostream>
 #include <fstream>
