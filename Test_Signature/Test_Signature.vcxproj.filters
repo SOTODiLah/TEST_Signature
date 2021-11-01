@@ -36,4 +36,7 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\CryptoPP\lib\Win32\Release\cryptlib.lib" />
+  </ItemGroup>
 </Project>
