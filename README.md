@@ -16,7 +16,7 @@ Google Drive [ZIP](https://drive.google.com/file/d/1vOXv8lHla6tN9cDsl4ukCkBggUd0
 
 Запуск программы осуществляет через командную строку.<br>
 ```bash
-Options:<br>
+Options:
   -h,--help                   Вывод этого справочного сообщения.
   -i,--input TEXT             Путь до входного файла.
   -o,--output TEXT            Путь до выходного файла.
