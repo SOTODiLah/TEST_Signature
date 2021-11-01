@@ -114,7 +114,7 @@ void Signature::threadReader()
 		str->resize(sizeBlock);
 		pos += sizeBlock;
 	}
-	size_t smallBlock = sizeFile - pos;
+	size_t smallBlock = (size_t)sizeFile - (size_t)pos;
 	if (smallBlock > 0)
 	{
 		str->resize(smallBlock);
