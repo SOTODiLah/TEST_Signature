@@ -2,8 +2,15 @@
 Создание сигнатуры файла по блоками заданной величены. Хэш MD5.
 
 ## Project VS2019
+### Release x86
+Компиляцию можно произвести в конфигурации Release x86.
 ```bash
 git clone git://github.com/SOTODiLah/TEST_Signature.git
+````
+### Other config
+Для компиляции иной конфигурации необходимо скачать и скопилировать библеотеку [CryptoPP](https://github.com/weidai11/cryptopp) в нужной вам конфигурации.
+```bash
+git clone git://github.com/weidai11/cryptopp
 ````
 
 ## Download program
