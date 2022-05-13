@@ -7,18 +7,18 @@
 #include <functional>
 
 template <class T>
-class SmartQueue
+class CyclicQueue
 {
     // Удаление конструкторов копирования и операторов присваивания
-    SmartQueue(const SmartQueue&) = delete;
-    SmartQueue(SmartQueue&&) = delete;
-    SmartQueue& operator=(const SmartQueue&) = delete;
-    SmartQueue& operator=(SmartQueue&&) = delete;
+    CyclicQueue(const CyclicQueue&) = delete;
+    CyclicQueue(CyclicQueue&&) = delete;
+    CyclicQueue& operator=(const CyclicQueue&) = delete;
+    CyclicQueue& operator=(CyclicQueue&&) = delete;
 public:
     /**
      * Обязательный конструктор с инициализацией вектора указанным размером + 1. Увеличение размер производится из-за цикличного устройства очереди.
      */
-    explicit SmartQueue(size_t size) : container(size + 1)
+    explicit CyclicQueue(size_t size) : container(size + 1)
     {
         assert(size);
     }

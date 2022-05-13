@@ -8,12 +8,13 @@
 #include <atomic>
 #include <condition_variable>
 #include <filesystem>
+#include <utility>
 
 #include "../CryptoPP/cryptlib.h"
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include "../CryptoPP/md5.h"
 
-#include "SmartQueue.hpp"
+#include "CyclicQueue.hpp"
 #include "FileBlock.hpp"
 
 class Signature
@@ -94,7 +95,7 @@ private:
 	bool finishReader = false;
 
 	// Вектор для работы с очередями блоков потоков обработчиков.
-	std::vector<std::shared_ptr<SmartQueue<FileBlock>>> smartQueue;
+	std::vector<std::shared_ptr<CyclicQueue<FileBlock>>> cyclicQueue;
 
 	// Метод потока читателя и метод потоков обработчиков.
 	void threadReader();

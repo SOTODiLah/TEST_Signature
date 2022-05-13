@@ -81,7 +81,8 @@ void Signature::signatureFileSingleReader()
 	if (sizeFile == 0)
 		throw std::exception("The file does not exist or the size is null.");
 	for (size_t i = 0; i < hardwareConcurrency - 1; i++)
-		smartQueue.push_back(std::move(std::shared_ptr<SmartQueue<FileBlock>>(new SmartQueue<FileBlock>(halfhardwareConcurrency))));
+		
+		cyclicQueue.push_back(std::move(std::shared_ptr<CyclicQueue<FileBlock>>(new CyclicQueue<FileBlock>(halfhardwareConcurrency)))); 
 	threads.push_back(std::move(std::thread(&Signature::threadReader, this)));
 	for (size_t i = 0; i < hardwareConcurrency-1; i++)
 	{
@@ -91,7 +92,7 @@ void Signature::signatureFileSingleReader()
 	{
 		t.join();
 	}
-	smartQueue.clear();
+	cyclicQueue.clear();
 	threads.clear();
 }
 
@@ -108,7 +109,7 @@ void Signature::threadReader()
 	{
 		inputFileStream.read(&(*str)[0], sizeBlock);
 		FileBlock fb(str, pos);
-		smartQueue[idHasher]->push(fb);
+		cyclicQueue[idHasher]->push(fb);
 		idHasher = idHasher < (hardwareConcurrency - 2) ? idHasher + 1 : 0;
 		str.reset(new std::string);
 		str->resize(sizeBlock);
@@ -120,7 +121,7 @@ void Signature::threadReader()
 		str->resize(smallBlock);
 		inputFileStream.read(&(*str)[0], smallBlock);
 		FileBlock fb(str, pos);
-		smartQueue[idHasher]->push(fb);
+		cyclicQueue[idHasher]->push(fb);
 	}
 	finishReader = true;
 }
@@ -133,7 +134,7 @@ void Signature::threadHasher(size_t idThread)
 	digest.resize(sizeDigest);
 	while (!finishReader)
 	{
-		if (smartQueue[idThread]->pop(fb))
+		if (cyclicQueue[idThread]->pop(fb))
 		{
 			fb.hashMD5(digest);
 			fb.posHash(posHash, sizeDigest, sizeBlock);

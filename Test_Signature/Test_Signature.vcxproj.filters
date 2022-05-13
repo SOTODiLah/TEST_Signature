@@ -29,7 +29,7 @@
     <ClInclude Include="Signature.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="SmartQueue.hpp">
+    <ClInclude Include="CyclicQueue.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="FileBlock.hpp">
