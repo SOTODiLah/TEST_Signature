@@ -81,7 +81,6 @@ void Signature::signatureFileSingleReader()
 	if (sizeFile == 0)
 		throw std::exception("The file does not exist or the size is null.");
 	for (size_t i = 0; i < hardwareConcurrency - 1; i++)
-		
 		cyclicQueue.push_back(std::move(std::shared_ptr<CyclicQueue<FileBlock>>(new CyclicQueue<FileBlock>(halfhardwareConcurrency)))); 
 	threads.push_back(std::move(std::thread(&Signature::threadReader, this)));
 	for (size_t i = 0; i < hardwareConcurrency-1; i++)
@@ -134,7 +133,7 @@ void Signature::threadHasher(size_t idThread)
 	digest.resize(sizeDigest);
 	while (!finishReader)
 	{
-		if (cyclicQueue[idThread]->pop(fb))
+		while (cyclicQueue[idThread]->pop(fb))
 		{
 			fb.hashMD5(digest);
 			fb.posHash(posHash, sizeDigest, sizeBlock);
