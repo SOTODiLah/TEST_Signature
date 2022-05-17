@@ -56,11 +56,6 @@ public:
 	 * Экспериментальный метод получения сигнатуры файла. Каждый поток читает, хэширует, записывает блоки файла.
 	 */
 	void signatureFileAllReader();
-
-	/**
-	 * Экспериментальный метод получения сигнатуры файла. Потоки работают в парах, один читатель, другой обработчик.
-	 */
-	void signatureFileHalfReader();
 	
 private:
 	
@@ -84,9 +79,6 @@ private:
 
 	// Мьютех для работы потоков с файлом на запись.
 	std::mutex mtxForWrite;
-	
-	// Размер блока хэша (MD5 16 байт).
-	const size_t sizeDigest = 16;
 
 	// Вектор созданых потоков
 	std::vector<std::thread> threads;
@@ -103,9 +95,5 @@ private:
 	
 	// Метод потоков обработчиков (читают, хэшируют, записывают).
 	void threadReadHashWrite(size_t idThread);
-
-	// Парные потоки читатель и обрабочик.
-	void threadForReadHalfThreadsOnTask(std::shared_ptr<std::shared_ptr<std::string>> block, size_t idThread, std::shared_ptr<bool> finish);
-	void threadForHashHalfThreadsOnTask(std::shared_ptr<std::shared_ptr<std::string>> block, size_t idThread, std::shared_ptr<bool> finish);
 };
 

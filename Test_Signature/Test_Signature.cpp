@@ -21,13 +21,21 @@ int main(int argc, char** argv) {
 	bool printTime = false;
 	app.add_option("-t, --timeWork", printTime, "Print time work.");
 
+	int method = 0;
+	app.add_option("-m, --method", method, "Take method of threading.\n'0' - single reader;\n'1' - every thread is reader.");
+
 	CLI11_PARSE(app, argc, argv);
 
 	TimeCode tc;
 	tc.getFirst();
 	Signature signature(inputFileName, outputFileName, sizeBlock);
 	try {
-		signature.signatureFileSingleReader();
+		if (method == 0)
+			signature.signatureFileSingleReader();
+		else if (method == 1)
+			signature.signatureFileAllReader();
+		else
+			throw std::exception("Number of method is not correct.");
 
 		std::cout << "Signature file complited";
 		if (printTime)
