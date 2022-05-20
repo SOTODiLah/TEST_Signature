@@ -3,23 +3,40 @@
 Signature::Signature(std::string inputFileName, std::string outputFileName, size_t sizeBlock)
 	: inputFileName(inputFileName), outputFileName(outputFileName), sizeBlock(sizeBlock)
 {
-	isOpenInputFile = false;
-
-	outputFileStream.open(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc);
-
+	canOpenInputFile = checkInputFile();
 	hardwareConcurrency = std::thread::hardware_concurrency();
 	if (hardwareConcurrency < 2)
 		hardwareConcurrency = 2;
 	halfhardwareConcurrency = hardwareConcurrency / 2;
+	checkException();
+}
 
+bool Signature::checkInputFile()
+{
 	std::fstream file(inputFileName, std::ios::in | std::ios::binary);
-	isOpenInputFile = file.is_open();
-	if (isOpenInputFile)
+	if (file.is_open())
 	{
 		sizeFile = std::filesystem::file_size(inputFileName);
 		file.close();
+		return true;
 	}
-	else { sizeFile = 0; }
+	else
+	{
+		sizeFile = 0;
+		return false;
+	}
+}
+
+void Signature::checkException()
+{
+	if (inputFileName == "")
+		throw std::exception("Invalid file name.");
+	if (outputFileName == "")
+		throw std::exception("Invalid file name.");
+	if (!canOpenInputFile)
+		throw std::exception("The file couldn't be opened.");
+	if (sizeFile == 0)
+		throw std::exception("The file does not exist or the size is null.");
 }
 
 bool Signature::setFilesNames(std::string newInputFileName, std::string newOutputFileName)
@@ -29,17 +46,9 @@ bool Signature::setFilesNames(std::string newInputFileName, std::string newOutpu
 		outputFileName = newOutputFileName;
 		outputFileStream.open(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc);
 	}
-	std::fstream file(newInputFileName, std::ios::in | std::ios::binary);
-	isOpenInputFile = file.is_open();
-	if (isOpenInputFile)
-	{
-		sizeFile = std::filesystem::file_size(newInputFileName);
-		inputFileName = newInputFileName;
-		file.close();
-	}
-	else
-		sizeFile = 0;
-	return isOpenInputFile;
+	inputFileName = newInputFileName;
+	canOpenInputFile = checkInputFile();
+	return canOpenInputFile;
 }
 
 bool Signature::setSizeBlock(size_t newSizeBlock)
@@ -72,20 +81,30 @@ uint64_t Signature::getSizeFile() const
 	return sizeFile;
 }
 
+void Signature::openOutputFile()
+{
+	outputFileStream.open(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc);
+}
+
+void Signature::writeHashToFile(const std::int64_t& position, const std::string& hash, const size_t& size)
+{
+	mtxForWrite.lock();
+	outputFileStream.seekp(position, std::ios::beg);
+	outputFileStream.write(&hash[0], size);
+	mtxForWrite.unlock();
+}
+
 void Signature::signatureFileSingleReader()
 {
-	if (inputFileName == "")
-		throw std::exception("Invalid file name.");
-	if (!isOpenInputFile)
-		throw std::exception("The file couldn't be opened.");
-	if (sizeFile == 0)
-		throw std::exception("The file does not exist or the size is null.");
+	checkException();
+
+	openOutputFile();
 	for (size_t i = 0; i < hardwareConcurrency - 1; i++)
-		cyclicQueue.push_back(std::move(std::shared_ptr<CyclicQueue<FileBlock>>(new CyclicQueue<FileBlock>(halfhardwareConcurrency)))); 
-	threads.push_back(std::move(std::thread(&Signature::threadReader, this)));
+		cyclicQueue.push_back(std::shared_ptr<CyclicQueue<FileBlock>>(new CyclicQueue<FileBlock>(halfhardwareConcurrency)));
+	threads.push_back(std::thread(&Signature::threadReader, this));
 	for (size_t i = 0; i < hardwareConcurrency-1; i++)
 	{
-		threads.push_back(std::move(std::thread(&Signature::threadHasher, this, i)));
+		threads.push_back(std::thread(&Signature::threadHasher, this, i));
 	}
 	for (auto& t : threads)
 	{
@@ -101,6 +120,7 @@ void Signature::threadReader()
 		finishReader = false;
 
 		std::ifstream inputFileStream(inputFileName, std::ios::binary);
+
 		uint64_t sizeFileWithoutBlock = sizeFile - sizeBlock;
 		uint64_t pos = 0;
 
@@ -129,6 +149,8 @@ void Signature::threadReader()
 			FileBlock fb(str, pos);
 			cyclicQueue[idHasher]->push(fb);
 		}
+
+		inputFileStream.close();
 		finishReader = true;
 	}
 	catch (std::exception exp) {
@@ -138,14 +160,14 @@ void Signature::threadReader()
 
 FileBlock::HashCallback callbackHashMD5([](const std::string& str)->std::shared_ptr<std::string>
 	{
-		auto digest = std::shared_ptr<std::string>(new std::string());
-		digest->resize(16);
+		auto hash = std::shared_ptr<std::string>(new std::string());
+		hash->resize(16);
 
-		CryptoPP::Weak::MD5 hash;
-		hash.Update((const CryptoPP::byte*)&str[0], str.size());
-		hash.Final((CryptoPP::byte*)&(*digest)[0]);
+		CryptoPP::Weak::MD5 hasher;
+		hasher.Update((const CryptoPP::byte*)&str[0], str.size());
+		hasher.Final((CryptoPP::byte*)&(*hash)[0]);
 
-		return digest;
+		return hash;
 	});
 
 void Signature::threadHasher(size_t idThread)
@@ -157,33 +179,23 @@ void Signature::threadHasher(size_t idThread)
 			while (cyclicQueue[idThread]->pop(fb))
 			{
 				fb.hashing(callbackHashMD5, sizeBlock);
-
-				mtxForWrite.lock();
-
-				outputFileStream.seekp(fb.getPosHash(), std::ios::beg);
-				outputFileStream.write(&fb.getHash()[0], fb.getHash().size());
-
-				mtxForWrite.unlock();
+				writeHashToFile(fb.getPosHash(), fb.getHash(), fb.getHash().size());
 			}
 		}
 	}
-	catch (std::exception exp) {
+	catch (std::exception exp) 
+	{
 		std::cout << exp.what() << '\n';
 	}
 }
 
 void Signature::signatureFileAllReader()
 {
-	if (inputFileName == "")
-		throw std::exception("Invalid file name.");
-	if (!isOpenInputFile)
-		throw std::exception("The file couldn't be opened.");
-	if (sizeFile == 0)
-		throw std::exception("The file does not exist or the size is null.");
-
+	checkException();
+	openOutputFile();
 	for (size_t i = 0; i < hardwareConcurrency; i++)
 	{
-		threads.push_back(std::move(std::thread(&Signature::threadReadHashWrite, this, i)));
+		threads.push_back(std::thread(&Signature::threadReadHashWrite, this, i));
 	}
 	for (auto& t : threads)
 	{
@@ -197,53 +209,42 @@ void Signature::threadReadHashWrite(size_t idThread)
 	try {
 		std::ifstream inputFileStream(inputFileName, std::ios::binary);
 
-		uint64_t pos = sizeBlock * (uint64_t)idThread;
-		uint64_t posHash = 16 * (uint64_t)idThread;
-		size_t addPosHash = 16 * hardwareConcurrency;
-		size_t addPos = (size_t)sizeBlock * (hardwareConcurrency - 1);
+		uint64_t position = sizeBlock * (uint64_t)idThread;
+		uint64_t positionHash = 16 * (uint64_t)idThread;
+		size_t offsetPositionHash = 16 * hardwareConcurrency;
+		size_t offsetPosition = (size_t)sizeBlock * (hardwareConcurrency - 1);
 		uint64_t sizeFileWithoutOneBlock = sizeFile - sizeBlock;
 
 		std::string str;
-		std::string digest;
+		std::string hash;
 		str.resize(sizeBlock);
-		digest.resize(16);
+		hash.resize(16);
 
-		inputFileStream.seekg(pos, std::ios::beg);
+		inputFileStream.seekg(position, std::ios::beg);
+		CryptoPP::Weak::MD5 hasher;
 
-		while (pos < sizeFileWithoutOneBlock)
+		while (position < sizeFileWithoutOneBlock)
 		{
 			inputFileStream.read(&str[0], sizeBlock);
-			inputFileStream.seekg(addPos, std::ios::cur);
-			pos += (uint64_t)addPos + sizeBlock;
+			inputFileStream.seekg(offsetPosition, std::ios::cur);
+			position += (uint64_t)offsetPosition + sizeBlock;
 
-			CryptoPP::Weak::MD5 hash;
-			hash.Update((const CryptoPP::byte*)&str[0], sizeBlock);
-			hash.Final((CryptoPP::byte*)&digest[0]);
+			hasher.Update((const CryptoPP::byte*)&str[0], sizeBlock);
+			hasher.Final((CryptoPP::byte*)&hash[0]);
 
-			mtxForWrite.lock();
+			writeHashToFile(positionHash, hash, 16);
 
-			outputFileStream.seekp(posHash, std::ios::beg);
-			outputFileStream.write(&digest[0], 16);
-
-			mtxForWrite.unlock();
-
-			posHash += addPosHash;
+			positionHash += offsetPositionHash;
 		}
-		size_t remainSize = (size_t)(sizeFile - pos);
+		size_t remainSize = (size_t)(sizeFile - position);
 		if (remainSize > 0 && remainSize <= sizeBlock)
 		{
 			inputFileStream.read(&str[0], remainSize);
 
-			CryptoPP::Weak::MD5 hash;
-			hash.Update((const CryptoPP::byte*)&str[0], remainSize);
-			hash.Final((CryptoPP::byte*)&digest[0]);
+			hasher.Update((const CryptoPP::byte*)&str[0], remainSize);
+			hasher.Final((CryptoPP::byte*)&hash[0]);
 
-			mtxForWrite.lock();
-
-			outputFileStream.seekp(posHash, std::ios::beg);
-			outputFileStream.write(&digest[0], 16);
-
-			mtxForWrite.unlock();
+			writeHashToFile(positionHash, hash, 16);
 		}
 		inputFileStream.close();
 	}

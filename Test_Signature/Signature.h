@@ -60,11 +60,11 @@ public:
 private:
 	
 	// Свойства для работы с файлами.
-	bool isOpenInputFile = false;
+	bool canOpenInputFile = false;
 	std::string inputFileName;
 	std::string outputFileName;
 	std::ofstream outputFileStream;
-	
+
 	// Поличество возможных потоков.
 	size_t hardwareConcurrency;
 
@@ -95,5 +95,17 @@ private:
 	
 	// Метод потоков обработчиков (читают, хэшируют, записывают).
 	void threadReadHashWrite(size_t idThread);
+
+	// Метод проверки возможности работы с потоком ввода
+	bool checkInputFile();
+
+	// Метод проверки на потенциальные исключения свойств класса
+	void checkException();
+
+	// Метод открытия потока записи
+	void openOutputFile();
+
+	// Метод записи строки хэша в файл
+	void writeHashToFile(const std::int64_t&, const std::string&, const size_t&);
 };
 
