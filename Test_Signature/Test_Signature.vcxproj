@@ -97,6 +97,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +124,7 @@
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -168,7 +170,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Signature.cpp" />
     <ClCompile Include="Test_Signature.cpp">
       <FavorSizeOrSpeed Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Speed</FavorSizeOrSpeed>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -176,17 +177,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FileBlock.hpp" />
-    <ClInclude Include="Signature.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="CyclicQueue.hpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="TimeCode.hpp" />
+    <ClInclude Include="AsyncDataReader.hpp" />
+    <ClInclude Include="AsyncDataWriter.hpp" />
+    <ClInclude Include="HasherMD5.hpp" />
+    <ClInclude Include="HashTask.hpp" />
+    <ClInclude Include="IHasher.h" />
+    <ClInclude Include="ITask.h" />
+    <ClInclude Include="MultiSingleQueue.hpp" />
+    <ClInclude Include="Signature.hpp" />
+    <ClInclude Include="ThreadPool.hpp" />
+    <ClInclude Include="Timers.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\CryptoPP\lib\Win32\Release\cryptlib.lib" />
