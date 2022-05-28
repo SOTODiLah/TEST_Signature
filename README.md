@@ -17,7 +17,7 @@ git clone git://github.com/weidai11/cryptopp
 ````
 
 ## Download program
-В арихиве две программы: программа создания сигнатуры файла и программа создания файлов из случайного набора байт (для инструкции используете --help).
+В архиве две программы: программа создания сигнатуры файла и программа создания файлов из случайного набора байт (для инструкции используете --help).
 * Google Drive [ZIP](https://drive.google.com/file/d/1GqDWLeBzlBN6HFKwM0_RmM4ZLVnmyK5-/view?usp=sharing)
 
 ## Launch
