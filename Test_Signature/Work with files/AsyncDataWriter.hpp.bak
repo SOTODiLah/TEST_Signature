@@ -8,7 +8,7 @@
 #include <mutex>
 #include <queue>
 
-#include "MultiSingleQueue.hpp"
+#include "../Other/MultiSingleQueue.hpp"
 
 class AsyncDataWriter
 {

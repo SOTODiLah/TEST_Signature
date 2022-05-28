@@ -6,7 +6,7 @@
 #include "../CryptoPP/md5.h"
 
 /*
-*  - класс создания MD5 хэша 
+*  - РєР»Р°СЃСЃ СЃРѕР·РґР°РЅРёСЏ MD5 С…СЌС€Р° 
 */
 class HasherMD5 : public IHasher
 {

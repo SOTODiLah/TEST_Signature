@@ -82,7 +82,7 @@ private:
             {
                 if (!dataset.popForOne(popCallback))
                     continue;
-                data.clear(); // освобождаем память до блокировки
+                data.clear(); // РѕСЃРІРѕР±РѕР¶РґР°РµРј РїР°РјСЏС‚СЊ РґРѕ Р±Р»РѕРєРёСЂРѕРІРєРё
                 if (!file.good())
                     break;
             }

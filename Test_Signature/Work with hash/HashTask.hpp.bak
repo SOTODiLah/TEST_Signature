@@ -5,7 +5,7 @@
 #include <string>
 #include <future>
 
-#include "ITask.h"
+#include "../Work with threads/ITask.h"
 #include "IHasher.h"
 
 /*

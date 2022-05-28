@@ -9,7 +9,7 @@
 #include <condition_variable>
 
 #include "ITask.h"
-#include "MultiSingleQueue.hpp"
+#include "../Other/MultiSingleQueue.hpp"
 
 /*
 *  - создаёт потоки в конструкторе
