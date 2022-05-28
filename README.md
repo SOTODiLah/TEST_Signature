@@ -18,9 +18,8 @@ git clone git://github.com/weidai11/cryptopp
 
 ## Download program
 
-* Google Drive [ZIP](https://drive.google.com/file/d/1_awqe0CbxfvD5BDJobVKWrq-Ot9Cajm5/view?usp=sharing) - только программа.
-
-* Google Drive [ZIP](https://drive.google.com/file/d/1vOXv8lHla6tN9cDsl4ukCkBggUd0F65t/view?usp=sharing) - программа и тестовый файл 1gb.
+* Google Drive [ZIP](https://drive.google.com/file/d/1_awqe0CbxfvD5BDJobVKWrq-Ot9Cajm5/view?usp=sharing) - программа 
+* создания сигнатуры файла и программа создания файлов из случайного набора байт (для инструкции используете --help).
 
 ## Launch
 
@@ -31,8 +30,6 @@ Options:
   -i,--input TEXT             Путь до входного файла.
   -o,--output TEXT            Путь до выходного файла.
   -s,--sizeBuffer UINT        Размер буфера (блока файла).
-  -t,--timeWork BOOLEAN       Вывод времени работы программы.
-  -m,--method INT             Выбор метода работы потоков.
 ````
 ## Struct project
 
