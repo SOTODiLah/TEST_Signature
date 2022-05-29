@@ -56,10 +56,10 @@ public:
             writer.join();
             return true;
         }
-        catch (const std::exception& exp) { std::cout << exp.what() << '\n'; }
-        catch (const std::string& exp) { std::cout << exp.c_str() << '\n'; }
-        catch (const char* exp) { std::cout << exp << '\n'; }
-        catch (...) { std::cout << "unknown exception" << '\n'; }
+        catch (const std::exception& exp) { std::cout << "class Signature: " << exp.what() << '\n'; }
+        catch (const std::string& exp) { std::cout << "class Signature: " << exp.c_str() << '\n'; }
+        catch (const char* exp) { std::cout << "class Signature: " << exp << '\n'; }
+        catch (...) { std::cout << "class Signature: unknown exception" << '\n'; }
         return false;
     }
 
