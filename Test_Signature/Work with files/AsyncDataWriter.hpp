@@ -60,7 +60,7 @@ public:
         return inProcess.test(std::memory_order::relaxed);
     }
 
-    void pushData(std::future<std::string> data)
+    void pushData(std::future<std::unique_ptr<std::string>>& data)
     {
         if (wasInterrupted() || !isInProcess())
             throw std::exception("class AsyncDataWriter: attempt to push data, when was stoped.");
@@ -73,16 +73,17 @@ private:
     {
         try
         {
-            std::string data;
-            std::function<void(std::future<std::string>&)> popCallback = [this, &data](std::future<std::string>& future) {
+            std::unique_ptr<std::string> data;
+            std::function<void(std::future<std::unique_ptr<std::string>>&)> popCallback = 
+                [this, &data](std::future<std::unique_ptr<std::string>>& future) {
                 data = std::move(future.get());
-                file.write(&data[0], data.size());
+                file.write(&(*data)[0], data->size());
             };
             while (isInProcess() || !dataset.isEmpty())
             {
                 if (!dataset.popForOne(popCallback))
                     continue;
-                data.clear(); // освобождаем память до блокировки
+                data.reset(); // освобождаем память до блокировки
                 if (!file.good())
                     break;
             }
@@ -107,7 +108,7 @@ private:
     std::ofstream file;
     std::thread worker;
 
-    MultiSingleQueue<std::future<std::string>> dataset;
+    MultiSingleQueue<std::future<std::unique_ptr<std::string>>> dataset;
 
     inline void exceptionOutput(const char* exp) noexcept
     {

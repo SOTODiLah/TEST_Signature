@@ -27,8 +27,9 @@ public:
     {
         try
         {
-            MultiSingleQueue<std::string> dataOfReader;
-            std::function<void(std::string&)> callbackPushOfReader = [&dataOfReader](std::string& data) {
+            MultiSingleQueue<std::unique_ptr<std::string>> dataOfReader;
+            std::function<void(std::unique_ptr<std::string>&)> callbackPushOfReader = 
+                [&dataOfReader](std::unique_ptr<std::string>& data) {
                 dataOfReader.pushForMulti(data);
             };
 
@@ -37,9 +38,12 @@ public:
             ThreadPool threads(std::thread::hardware_concurrency() - 3);
 
             std::unique_ptr<HashTask<T>> task;
-            std::function<void(std::string&)> callbackPop = [&dataOfReader, &task, &writer, &threads](std::string& data) {
+            std::future<std::unique_ptr<std::string>> futureTask;
+            std::function<void(std::unique_ptr<std::string>&)> callbackPop = 
+                [&dataOfReader, &task, &writer, &threads, &futureTask](std::unique_ptr<std::string>& data) {
                 task = std::make_unique<HashTask<T>>(data);
-                writer.pushData(std::move(task->getFuture()));
+                futureTask = task->getFuture();
+                writer.pushData(futureTask);
                 threads.assignTask(std::move(task));
             };
             

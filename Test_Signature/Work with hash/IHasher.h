@@ -19,5 +19,5 @@ protected:
 
 public:
 	virtual ~IHasher() {}
-	virtual std::string make(const std::string& data) = 0;
+	virtual std::unique_ptr<std::string> make(const std::unique_ptr<std::string>& data) = 0;
 };

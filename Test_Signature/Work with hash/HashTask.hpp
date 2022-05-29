@@ -25,16 +25,16 @@ private:
 
 public:
 
-    HashTask(const char* newData)
-    {
-        if (newData)
-            throw std::exception("class HashTask: attempt to initialize, a pointer to data is null.");
-        data = std::string(newData);
-    }
-
-    HashTask(std::string& newData) 
+    HashTask(const std::string& newData)
     {
         if (newData.empty())
+            throw std::exception("class HashTask: attempt to initialize, a pointer to data is null.");
+        data = std::make_unique<std::string>(newData);
+    }
+
+    HashTask(std::unique_ptr<std::string>& newData)
+    {
+        if (!newData)
             throw std::exception("class HashTask: attempt to initialize, a data is null.");
         data = std::move(newData);
     }
@@ -42,7 +42,7 @@ public:
     /*
     *  - возвращаем future, чтобы мы могли ожидать результат хэширования
     */
-    std::future<std::string> getFuture() 
+    std::future<std::unique_ptr<std::string>> getFuture()
     {
         return hashPromise.get_future();
     }
@@ -58,8 +58,8 @@ public:
             if (isDone())
                 throw std::exception("class HashTask: attempt to run, when it was done.");
             T hasher;
-            std::string hash = hasher.make(data);
-            if (hash.empty())
+            std::unique_ptr<std::string> hash = hasher.make(data);
+            if (!hash)
                 throw std::exception("class HashTask: hash was maked and it is null.");
             hashPromise.set_value(std::move(hash));
             done();
@@ -71,6 +71,6 @@ public:
     }
 
 private:
-    std::string data;
-    std::promise<std::string> hashPromise;
+    std::unique_ptr<std::string> data;
+    std::promise<std::unique_ptr<std::string>> hashPromise;
 };

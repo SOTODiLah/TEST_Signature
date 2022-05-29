@@ -24,7 +24,7 @@ public:
     /*
     *  - выбрасывает исключения в случае неудачного открытия файла ввода
     */
-    AsyncDataReader(const std::string& fileName, const size_t& sizeBlock, const std::function<void(std::string&)>& func)
+    AsyncDataReader(const std::string& fileName, const size_t& sizeBlock, const std::function<void(std::unique_ptr<std::string>&)>& func)
     {
         if (fileName == "")
             throw std::exception("class AsyncDataReader: file name is null.");
@@ -75,11 +75,13 @@ private:
     {
         try
         {
-            std::string data;
+            std::unique_ptr<std::string> data;
             while (true)
             {
-                data.resize(sizeBlock);
-                file.read(&data[0], sizeBlock);
+                data = std::make_unique<std::string>();
+                data->reserve(sizeBlock);
+                data->resize(sizeBlock);
+                file.read(&(*data)[0], sizeBlock);
                 if (!file.good())
                     break;
                 callback(data);
@@ -94,7 +96,7 @@ private:
                 *  - последний считанный блок может быть неполным
                 *  - обрезаем его до размера последних считанных байт
                 */
-                data.resize((size_t)file.gcount());
+                data->resize((size_t)file.gcount());
                 callback(data);
             }
             else if (file.fail())
@@ -113,7 +115,7 @@ private:
 
     std::ifstream file;
     std::thread worker;
-    std::function<void(std::string&)> callback;
+    std::function<void(std::unique_ptr<std::string>&)> callback;
 
     inline void exceptionOutput(const char* exp) noexcept
     {
