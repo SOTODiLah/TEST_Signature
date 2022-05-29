@@ -18,7 +18,8 @@ git clone git://github.com/weidai11/cryptopp
 
 ## Download program
 В архиве две программы: программа создания сигнатуры файла и программа создания файлов из случайного набора байт (для инструкции используете --help).
-* Google Drive [ZIP](https://drive.google.com/file/d/1GqDWLeBzlBN6HFKwM0_RmM4ZLVnmyK5-/view?usp=sharing)
+* GitHub [RAR](https://github.com/SOTODiLah/TEST_Signature/releases/tag/create-signature-2.0)
+* Google Drive [RAR](https://drive.google.com/file/d/1GqDWLeBzlBN6HFKwM0_RmM4ZLVnmyK5-/view?usp=sharing)
 
 ## Launch
 
